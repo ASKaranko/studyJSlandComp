@@ -75,7 +75,7 @@ window.addEventListener('DOMContentLoaded', () => {
         } else {
           target = target.closest('menu');
           if (!target) {
-            handlerMenu();
+            menu.classList.remove('active-menu');
           }
         }
       } else {
