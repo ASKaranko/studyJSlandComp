@@ -46,40 +46,34 @@ window.addEventListener('DOMContentLoaded', () => {
 
   }
 
-  countTimer('05 november 2020');
+  countTimer('12 november 2020');
 
   //Меню
   const toggleMenu = () => {
 
-    const menu = document.querySelector('menu');
+    const btnMenu = document.querySelector('.menu'),
+      menu = document.querySelector('menu');
 
     const handlerMenu = () => {
       menu.classList.toggle('active-menu');
     };
 
-    document.addEventListener('click', (event) => {
-      let target = event.target;
-      console.log(target);
+    btnMenu.addEventListener('click', handlerMenu);
 
-      if (target.closest('.menu')) {
+    menu.addEventListener('click', event => {
+      let target = event.target;
+      event.preventDefault();
+
+      if (target.classList.contains('close-btn')) {
         handlerMenu();
-      } else if (target.closest('body')) {
-        if (target.classList.contains('close-btn')) {
-          handlerMenu();
-        } else if (target.closest('menu>ul>li')) {
-          event.preventDefault();
-          target = target.closest('menu>ul>li');
+      } else {
+        target = target.closest('ul>li');
+
+        if (target) {
           handlerMenu();
           const blockId = target.querySelector('li>a').getAttribute('href');
           document.querySelector(`${blockId}`).scrollIntoView({ behavior: "smooth", block: 'start' });
-        } else {
-          target = target.closest('menu');
-          if (!target) {
-            menu.classList.remove('active-menu');
-          }
         }
-      } else {
-        return;
       }
     });
   };
@@ -183,5 +177,200 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   tabs();
+
+  //Слайдер
+
+  const slider = () => {
+    const slide = document.querySelectorAll('.portfolio-item'),
+      slider = document.querySelector('.portfolio-content'),
+      portfolioDots = document.querySelector('.portfolio-dots');
+
+    const addDots = () => {
+      slide.forEach((elem, i) => {
+        const li = document.createElement('li');
+        if (i === 0) {
+          li.classList.add('dot');
+          li.classList.add('dot-active');
+        } else {
+          li.classList.add('dot');
+        }
+        portfolioDots.append(li);
+      });
+    };
+
+    addDots();
+    const dot = document.querySelectorAll('.dot');
+
+    let currentSlide = 0,
+      interval;
+
+    const prevSlide = (elem, index, strClass) => {
+      elem[index].classList.remove(strClass);
+    };
+
+    const nextSlide = (elem, index, strClass) => {
+      elem[index].classList.add(strClass);
+    };
+
+    const autoPlaySlide = () => {
+
+      prevSlide(slide, currentSlide, 'portfolio-item-active');
+      prevSlide(dot, currentSlide, 'dot-active');
+      currentSlide++;
+      if (currentSlide >= slide.length) {
+        currentSlide = 0;
+      }
+      nextSlide(slide, currentSlide, 'portfolio-item-active');
+      nextSlide(dot, currentSlide, 'dot-active');
+    };
+
+    const startSlide = (time = 3000) => {
+
+      interval = setInterval(autoPlaySlide, time);
+
+    };
+
+    const stopSlide = () => {
+      clearInterval(interval);
+    };
+
+    slider.addEventListener('click', event => {
+      event.preventDefault();
+      const target = event.target;
+
+      if (!target.matches('.portfolio-btn, .dot')) {
+        return;
+      }
+
+      prevSlide(slide, currentSlide, 'portfolio-item-active');
+      prevSlide(dot, currentSlide, 'dot-active');
+
+      if (target.matches('#arrow-right')) {
+        currentSlide++;
+      } else if (target.matches('#arrow-left')) {
+        currentSlide--;
+      } else if (target.matches('.dot')) {
+        dot.forEach((elem, index) => {
+          if (elem === target) {
+            currentSlide = index;
+          }
+        });
+      }
+
+      if (currentSlide >= slide.length) {
+        currentSlide = 0;
+      }
+      if (currentSlide < 0) {
+        currentSlide = slide.length - 1;
+      }
+      nextSlide(slide, currentSlide, 'portfolio-item-active');
+      nextSlide(dot, currentSlide, 'dot-active');
+
+    });
+
+    slider.addEventListener('mouseover', event => {
+      if (event.target.matches('.portfolio-btn') || event.target.matches('.dot')) {
+        stopSlide();
+      }
+    });
+
+    slider.addEventListener('mouseout', event => {
+      if (event.target.matches('.portfolio-btn') || event.target.matches('.dot')) {
+        startSlide(1500);
+      }
+    });
+
+    startSlide(1500);
+
+
+  };
+
+  const ourTeam = () => {
+    const command = document.getElementById('command');
+
+    command.addEventListener('mouseover', event => {
+      if (event.target.matches('.command__photo')) {
+        event.target.src = event.target.dataset.img;
+      }
+    });
+
+    command.addEventListener('mouseout', event => {
+      if (event.target.matches('.command__photo')) {
+        event.target.src = event.target.src.replace(/\d{1}a/, match => match.substring(0, 1));
+      }
+    });
+  };
+
+  //Калькулятор
+
+  const calc = (price = 100) => {
+    const calcBlock = document.querySelector('.calc-block'),
+      calcType = document.querySelector('.calc-type'),
+      calcSquare = document.querySelector('.calc-square'),
+      calcCount = document.querySelector('.calc-count'),
+      calcDay = document.querySelector('.calc-day'),
+      totalValue = document.getElementById('total');
+
+    const countSum = () => {
+      let total = 0,
+        countValue = 1,
+        dayValue = 1;
+      const typeValue = +calcType.options[calcType.selectedIndex].value,
+        squareValue = +calcSquare.value;
+
+      if (calcCount.value > 1) {
+        countValue += (calcCount.value - 1) / 10;
+      }
+
+      if (calcDay.value && calcDay.value < 5) {
+        dayValue *= 2;
+      } else if (calcDay.value && calcDay.value >= 5 && calcDay.value < 10) {
+        dayValue *= 1.5;
+      }
+
+      if (typeValue && squareValue) {
+        total = price * typeValue * squareValue * countValue * dayValue;
+      }
+      return total;
+    };
+
+    calcBlock.addEventListener('input', event => {
+      const target = event.target;
+
+      if (target.matches('input')) {
+        target.value = target.value.replace(/\D/g, '');
+      }
+    });
+
+    calcBlock.addEventListener('change', event => {
+      const target = event.target;
+
+      if (target === calcType || target === calcSquare || target === calcCount || target === calcDay) {
+        const total = countSum();
+
+        let index = 0;
+        let totalQuater = total / 50;
+        if (total === 0) {
+          totalValue.textContent = 0;
+        }
+        const timerTotal = setInterval(() => {
+          for (let i = 0; i < totalQuater; i++) {
+            index++;
+            totalValue.textContent = index;
+          }
+          if (totalValue.textContent >= total) {
+            clearInterval(timerTotal);
+          }
+        }, 10);
+
+      }
+    });
+  };
+
+
+  ourTeam();
+  calc(100);
+
+  slider();
 
 });
