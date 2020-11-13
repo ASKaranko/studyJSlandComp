@@ -285,6 +285,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   };
 
+  //ourTeam
+
   const ourTeam = () => {
     const command = document.getElementById('command');
 
@@ -349,7 +351,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const total = countSum();
 
         let index = 0;
-        let totalQuater = total / 50;
+        const totalQuater = total / 50;
         if (total === 0) {
           totalValue.textContent = 0;
         }
@@ -367,7 +369,79 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  //send-ajax-form
+  const form = document.getElementById('form1'),
+    form2 = document.getElementById('form2'),
+    form3 = document.getElementById('form3');
 
+  const sendForm = form => {
+    const errorMessage = 'Что-то пошло не так...',
+      loadMessage = 'Загрузка...',
+      successMessage = 'Спасибо! Мы скоро с вами свяжемся!';
+
+    const statusMessage = document.createElement('div');
+    statusMessage.style.cssText = 'font-size: 2rem; color: yellow';
+    const circleMessage = document.createElement('img');
+    circleMessage.src = `./images/200.gif`;
+
+    const formBodyArray = [...form.elements];
+
+    const postData = (body, outputData, errorData) => {
+      const request = new XMLHttpRequest();
+      request.addEventListener('readystatechange', () => {
+        if (request.readyState !== 4) {
+          return;
+        }
+        if (request.status === 200) {
+          outputData();
+        } else {
+          errorData(request.status);
+        }
+      });
+      request.open('POST', './server.php');
+      request.setRequestHeader('Content-Type', 'application/json');
+      request.send(JSON.stringify(body));
+    };
+
+    formBodyArray.forEach(item => {
+      if (/phone$/.test(item.id)) {
+        item.addEventListener('input', () => {
+          item.value = item.value.replace(/[^0-9+]/g, '');
+        });
+      } else if (/name$/.test(item.id) || /message$/.test(item.id)) {
+        item.addEventListener('input', () => {
+          item.value = item.value.replace(/[^а-я]/gi, '');
+        });
+      }
+    });
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      form.append(statusMessage);
+      form.append(circleMessage);
+      const formData = new FormData(form);
+      const body = {};
+      formData.forEach((item, i) => {
+        body[i] = item;
+      });
+      postData(body, () => {
+        circleMessage.remove();
+        statusMessage.textContent = successMessage;
+        formBodyArray.forEach(item => {
+          if (item.tagName.toLowerCase() !== 'button') {
+            item.value = '';
+          }
+        });
+      }, error => {
+        console.error(error);
+        statusMessage.textContent = errorMessage;
+      });
+    });
+  };
+
+  sendForm(form);
+  sendForm(form2);
+  sendForm(form3);
   ourTeam();
   calc(100);
 
